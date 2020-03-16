@@ -15,6 +15,7 @@ from deploy import *
 from tuner import *
 
 def main(args):
+    common.printout("LOG","fhltest3"+str(args))
     parser = argparse.ArgumentParser(description='Cephperf Benchmark Script.')
     parser.add_argument(
         '--tuning',
@@ -34,10 +35,11 @@ def main(args):
         option = "benchmark"
 
     if option == "gen_case":
+        common.printout("LOG","fhltestr5")
         testcase_list = []
-        benchmark = qemurbd.QemuRbd()
-        benchmark_engine_config = benchmark.generate_benchmark_cases()
-        fio_list = benchmark_engine_config
+        #benchmark = qemurbd.QemuRbd()
+        #benchmark_engine_config = benchmark.generate_benchmark_cases()
+        #fio_list = benchmark_engine_config
 
         benchmark = fiorbd.FioRbd()
         benchmark_engine_config = benchmark.generate_benchmark_cases()
@@ -48,8 +50,8 @@ def main(args):
         #testcase_list.extend(testcases)
         #fio_list.extend( benchmark_engine_config )
 
-        benchmark = cosbench.Cosbench()
-        benchmark.generate_benchmark_cases()
+        #benchmark = cosbench.Cosbench()
+        #benchmark.generate_benchmark_cases()
 
         #benchmark = generic.Generic()
         #testcases, benchmark_engine_config = benchmark.generate_benchmark_cases()
@@ -68,6 +70,7 @@ def main(args):
                 if len(p) > 0 and p!="\n":
                     if not p[0].startswith('#'):
                         testcase_list.append({"engine":p[0],"parameter":p[1:]})
+        common.printout("LOG","fhltest4"+str(testcase_list))
         for testcase in testcase_list:
             if testcase["engine"] == "qemurbd":
                 benchmark = qemurbd.QemuRbd()
@@ -99,6 +102,7 @@ def main(args):
                     if additional_option == "resetPerf":
                         run_deploy.main(['osd_perf_reset'])
 
+                common.printout("LOG","fhltest6"+str(testcase["parameter"]))
                 benchmark.go(testcase["parameter"], tuning_section)
             except KeyboardInterrupt:
                 common.printout("WARNING","Caught KeyboardInterrupt Interruption",log_level="LVL1")

@@ -1,0 +1,56 @@
+[global]
+    fsid = 180c713a-3ca4-11e9-b35d-f8f21e0eaa8e
+    pid_path = /var/run/ceph
+    auth_service_required = none
+    auth_cluster_required = none
+    auth_client_required = none
+    ms_type = async+rdma
+    mon_data_avail_warn = 10
+    auth_client_requied = none
+    mon_data = /var/lib/ceph/ceph.$id
+    osd_pool_default_pg_num = 81920
+    osd_pool_default_pgp_num = 81920
+    osd_objectstore = bluestore
+    public_network = 10.0.0.1/16
+    monitor_network = 10.0.0.1/16
+    cluster_network = 10.0.0.1/16
+    enable experimental unrecoverable data corrupting features = *
+    bluestore_bluefs = true
+    bluestore_block_create = false
+    bluestore_block_db_create = false
+    bluestore_block_wal_create = false
+    mon_allow_pool_delete = true
+    bluestore_block_wal_separate = false
+    sceph7 = /dev/nvme3n1p1:/dev/nvme0n1:/dev/nvme4n1p2, /dev/nvme3n1p2:/dev/nvme1n1:/dev/nvme4n1p1, /dev/nvme3n1p3:/dev/nvme2n1:/dev/nvme4n1p3
+[mon]
+    mon_data = /var/lib/ceph/mon.$id
+[osd]
+    osd_data = /var/lib/ceph/mnt/osd-device-$id-data
+    osd_mkfs_type = xfs
+    osd_mount_options_xfs = rw,noatime,inode64,logbsize=256k
+[client]
+    rbd_cache = false
+[mon.sceph1]
+    host = sceph1
+    mon addr = 10.0.0.1
+[osd.0]
+    host = sceph7
+    public addr = 10.0.0.7
+    cluster addr = 10.0.0.7
+    devs = /dev/nvme3n1p1
+    bluestore_block_path = /dev/nvme0n1
+    bluestore_block_db_path = /dev/nvme4n1p2
+[osd.1]
+    host = sceph7
+    public addr = 10.0.0.7
+    cluster addr = 10.0.0.7
+    devs = /dev/nvme3n1p2
+    bluestore_block_path = /dev/nvme1n1
+    bluestore_block_db_path = /dev/nvme4n1p1
+[osd.2]
+    host = sceph7
+    public addr = 10.0.0.7
+    cluster addr = 10.0.0.7
+    devs = /dev/nvme3n1p3
+    bluestore_block_path = /dev/nvme2n1
+    bluestore_block_db_path = /dev/nvme4n1p3

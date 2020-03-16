@@ -157,6 +157,7 @@ class Tuner:
                     except Exception,e:
                         common.printout("LOG","<CLASS_NAME:%s> <FUN_NAME : %s> ERR_MSG:%s"%(self.__class__.__name__,sys._getframe().f_code.co_name,e),log_level="LVL2")
                         pass
+        common.printout("LOG", "get_pool_config %s" % (pool_config))
         return pool_config
 
     def dump_config(self):
@@ -332,6 +333,7 @@ class Tuner:
                 self.handle_pool(option = 'create', param = {'name':new_poolname, 'pg_num':new_pool_pg_num})
             #after create pool, check pool param
             latest_pool_config = self.get_pool_config()
+            common.printout("LOG", "new_poolname %s, pool_config %s" % (new_poolname, latest_pool_config))
             for param in self.worksheet[jobname]['pool'][new_poolname]:
                 if param == 'pg_num' or param not in latest_pool_config[new_poolname]:
                     continue
@@ -361,6 +363,9 @@ class Tuner:
             if 'name' in param and 'pg_num' in param:
                 common.printout("LOG","create ceph pool %s, pg_num is %s" % (param['name'], str(param['pg_num'])))
                 common.pdsh(user, [controller], "ceph osd pool create %s %s %s" % (param['name'], str(param['pg_num']), str(param['pg_num'])),option="check_return")
+                common.pdsh(user, [controller], "ceph osd pool application enable %s  rbd --yes-i-really-mean-it" % (param['name']))
+                common.pdsh(user, [controller], "ceph osd pool application enable %s  cephfs --yes-i-really-mean-it" % (param['name']))
+                common.pdsh(user, [controller], "ceph osd pool application enable %s  rgw --yes-i-really-mean-it" % (param['name']))
 
         if option == "set":
             if 'name' in param:

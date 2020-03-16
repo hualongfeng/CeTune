@@ -219,10 +219,10 @@ class ConfigHandler():
         required_list["workflow"] = OrderedDict()
         required_list["workflow"]["workstages"] = ["deploy","benchmark"]
         required_list["system"] = OrderedDict()
-        required_list["system"]["disk|read_ahead_kb"] = 2048
+        #required_list["system"]["disk|read_ahead_kb"] = 2048
         required_list["ceph_tuning"] = OrderedDict()
-        required_list["ceph_tuning"]["pool|rbd|size"] = 2
-        required_list["ceph_tuning"]["global|mon_pg_warn_max_per_osd"] = 1000
+        #required_list["ceph_tuning"]["pool|rbd|size"] = 2
+        #required_list["ceph_tuning"]["global|mon_pg_warn_max_per_osd"] = 1000
         required_list["analyzer"] = OrderedDict()
         required_list["analyzer"]["analyzer"] = "all"
 

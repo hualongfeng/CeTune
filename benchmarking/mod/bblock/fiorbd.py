@@ -40,11 +40,15 @@ class FioRbd(Benchmark):
             for pool_name in self.benchmark["poolname"].split(":"):
                 rbdlist = ' '.join(self.cluster["testjob_distribution"][client][pool_name])
                 common.printout("LOG","%d FIO Jobs starts on %s" % (len(self.cluster["testjob_distribution"][client]), client))
+                common.printout("LOG","for rbdname in %s; do POOLNAME=%s RBDNAME=${rbdname} fio --section init-write %s/fio_init.conf & done" % (rbdlist, pool_name, dest_dir))
                 res = common.pdsh(user, [client], "for rbdname in %s; do POOLNAME=%s RBDNAME=${rbdname} fio --section init-write %s/fio_init.conf & done" % (rbdlist, pool_name, dest_dir), option = "force")
                 fio_job_num_total += len(self.cluster["testjob_distribution"][client][pool_name])
         time.sleep(1)
         if not self.check_fio_pgrep(clients, fio_job_num_total):
             common.printout("ERROR","Failed to start FIO process",log_level="LVL1")
+            common.printout("ERROR",dest_dir,log_level="LVL1")
+            common.printout("ERROR",rbdlist,log_level="LVL1")
+            common.printout("ERROR",self.benchmark["poolname"],log_level="LVL1")
             common.pdsh(user, clients, "killall -9 fio", option = "check_return")
             raise KeyboardInterrupt
         if not fio_job_num_total:

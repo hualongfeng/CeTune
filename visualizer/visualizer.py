@@ -17,6 +17,12 @@ import numpy
 from create_DB import *
 import csv
 
+import sys
+defaultencoding = 'utf-8'
+if sys.getdefaultencoding() != defaultencoding:
+    reload(sys)
+    sys.setdefaultencoding(defaultencoding)
+
 pp = pprint.PrettyPrinter(indent=4)
 class Visualizer:
     def __init__(self, result, path=None):

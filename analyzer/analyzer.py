@@ -130,7 +130,9 @@ class Analyzer:
             self.result["session_name"] = session_name[-2]
 
         #-------------------remote   start------------------------
-        if self.cluster["distributed"] == "true":
+        #roy changed
+        #if self.cluster["distributed"] == "true":
+        if False:
             self.workpath = os.path.join(self.cluster["dest_dir"],"remote_tmp")
             remote_file = "../analyzer/analyzer_remote.py"
             remote_file1 = "%s/all.conf" % self.cluster["dest_conf_dir"]
@@ -842,7 +844,14 @@ class Analyzer:
     
             #3. nic
             stdout = common.bash( "cat "+path+" | awk 'BEGIN{find=0;}{if(find==0){for(i=1;i<=NF;i++){if($i==\"IFACE\"){j=i+1;if($j==\"rxpck/s\"){find=1;lines=1;next}}}};if($j==\"rxerr/s\"){find=2;for(k=1;k<=lines;k++)printf res_arr[k]\"\"FS;}if(find==1){res_arr[lines]=$(j-1);lines=lines+1;}if(find==2)exit}'" )
-            nic_array = stdout.split();
+            #nic_array = stdout.split()
+            import get_ifs
+            hostname = get_ifs.getHostnameFromPath(path)
+            ifdata = get_ifs.getIfdataFromHostname(hostname)
+            nic_array = get_ifs.getValidIfs(ifdata)
+            print(path)
+            print(nic_array)
+
             result["nic"] = {}
             for nic_id in nic_array:
                 stdout = common.bash( "grep 'IFACE' -m 1 "+path+" | awk -FIFACE '{print $2}'; cat "+path+" | awk 'BEGIN{find= 0;}{if(find==0){for(i=1;i<=NF;i++){if($i==\"IFACE\"){j=i+1;if($j==\"rxpck/s\"){find=1;next;}}}}if(find==1&&$j==\"rxerr/s\"){find=0;next}if(find==1 && $(j-1)==\""+nic_id+"\"){for(k=j;k<=NF;k++) printf $k\"\"FS; print \"\"}}'" )
@@ -909,7 +918,8 @@ class Analyzer:
                 else: #osd
                     disk_list = " ".join(dict_diskformat[output])
                     disk_num = len(list(set(dict_diskformat[output])))
-                stdout = common.bash( "grep 'Device' -m 1 "+path+" | awk -F\"Device:\" '{print $2}'; cat "+path+" | awk -v dev=\""+disk_list+"\" -v line="+runtime+" 'BEGIN{split(dev,dev_arr,\" \");dev_count=0;for(k in dev_arr){count[k]=0;dev_count+=1};for(i=1;i<=line;i++)for(j=1;j<=NF;j++){res_arr[i,j]=0}}{for(k in dev_arr)if(dev_arr[k]==$1){cur_line=count[k];for(j=2;j<=NF;j++){res_arr[cur_line,j]+=$j;}count[k]+=1;col=NF}}END{for(i=1;i<=line;i++){for(j=2;j<=col;j++)printf (res_arr[i,j]/dev_count)\"\"FS; print \"\"}}'")
+                    #maybe Device or Device:
+                stdout = common.bash( "grep 'Device' -m 1 "+path+" | awk -F\"Device\" '{print $2}'; cat "+path+" | awk -v dev=\""+disk_list+"\" -v line="+runtime+" 'BEGIN{split(dev,dev_arr,\" \");dev_count=0;for(k in dev_arr){count[k]=0;dev_count+=1};for(i=1;i<=line;i++)for(j=1;j<=NF;j++){res_arr[i,j]=0}}{for(k in dev_arr)if(dev_arr[k]==$1){cur_line=count[k];for(j=2;j<=NF;j++){res_arr[cur_line,j]+=$j;}count[k]+=1;col=NF}}END{for(i=1;i<=line;i++){for(j=2;j<=col;j++)printf (res_arr[i,j]/dev_count)\"\"FS; print \"\"}}'")
                 result[output] = common.convert_table_to_2Dlist(stdout)
                 result[output]["disk_num"] = disk_num
         except:
@@ -963,7 +973,7 @@ class Analyzer:
         result = {}
         try:
             stdout, stderr = common.bash("grep \" IOPS=.*BW=.*\| *io=.*bw=.*iops=.*runt=.*\|^ *lat.*min=.*max=.*avg=.*stdev=.*\" "+path, True)
-            stdout1, stderr1 = common.bash("grep \" *1.00th.*],\| *30.00th.*],\| *70.00th.*],\| *99.00th.*],\| *99.99th.*]\" "+path, True)
+            stdout1, stderr1 = common.bash("grep \" *1.00th.*],\| *30.00th.*],\| *95.00th.*],\| *99.00th.*],\| *99.99th.*]\" "+path, True)
             stdout2, stderr2 = common.bash("grep \" *clat percentiles\" "+path, True)
             lat_per_dict = {}
             if stdout1 != '':

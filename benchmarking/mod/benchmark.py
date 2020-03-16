@@ -67,10 +67,14 @@ class Benchmark(object):
                     self.setStatus("Completed")
 
                 common.printout("LOG","Post Process Result Data")
-                try:
-                    analyzer.main(['--path', self.cluster["dest_dir"], 'process_data'])
-                except:
-                    common.printout("ERROR","analyzer failed, pls try cd analyzer; python analyzer.py --path %s process_data " % self.cluster["dest_dir"],log_level="LVL1")
+                cnt = 0
+                while cnt < 25:
+                    cnt = cnt + 1
+                    try:
+                        analyzer.main(['--path', self.cluster["dest_dir"], 'process_data'])
+                        break
+                    except:
+                        common.printout("ERROR","analyzer failed, pls try cd analyzer; python analyzer.py --path %s process_data " % self.cluster["dest_dir"],log_level="LVL1")
         except:
             err_log = traceback.format_exc()
             common.printout("ERROR","The test has been stopped, error_log: %s." % err_log,log_level="LVL1")
@@ -95,9 +99,10 @@ class Benchmark(object):
         controller =  self.cluster["head"]
         ret = {}
         for pool_name in poolname.split(':'):
-            stdout, stderr = common.pdsh(user, [controller], "rbd ls -p %s" % pool_name, option="check_return")
+            stdout, stderr = common.pdsh(user, [controller], "rbd ls -p %s 2>/dev/null" % pool_name, option="check_return")
             if stderr:
                 common.printout("ERROR","unable get rbd list, return msg: %s" % stderr,log_level="LVL1")
+                common.printout("ERROR","rbd ls -p %s" % pool_name,log_level="LVL1")
                 #sys.exit()
             res = common.format_pdsh_return(stdout)
             if res != {}:
@@ -183,11 +188,29 @@ class Benchmark(object):
         common.pdsh(user, nodes, "date > %s/`hostname`_process_log.txt" % (dest_dir))
         common.printout("LOG","Start system data collector under %s " % nodes)
         common.pdsh(user, nodes, "cat /proc/interrupts > %s/`hostname`_interrupts_start.txt; echo `date +%s`' interrupt start' >> %s/`hostname`_process_log.txt" % (dest_dir, '%s', dest_dir))
-        common.pdsh(user, nodes, "top -c -b -d %s > %s/`hostname`_top.txt & echo `date +%s`' top start' >> %s/`hostname`_process_log.txt" % (monitor_interval, dest_dir, '%s', dest_dir))
-        common.pdsh(user, nodes, "mpstat -P ALL %s > %s/`hostname`_mpstat.txt & echo `date +%s`' mpstat start' >> %s/`hostname`_process_log.txt"  % (monitor_interval, dest_dir, '%s', dest_dir))
-        common.pdsh(user, nodes, "iostat -p ALL -dxm %s > %s/`hostname`_iostat.txt & echo `date +%s`' iostat start' >> %s/`hostname`_process_log.txt" % (monitor_interval, dest_dir, '%s', dest_dir))
-        common.pdsh(user, nodes, "sar -A %s > %s/`hostname`_sar.txt & echo `date +%s`' sar start' >> %s/`hostname`_process_log.txt" % (monitor_interval, dest_dir, '%s', dest_dir))
+        common.printout("LOG","Start11 system data collector under %s " % nodes)
+        #common.pdsh(user, nodes, "top -c -b -d %s > %s/`hostname`_top.txt & echo `date +%s`' top start' >> %s/`hostname`_process_log.txt" % (monitor_interval, dest_dir, '%s', dest_dir))
+        common.pdsh(user, nodes, "top -c -b -d %s > %s/`hostname`_top.txt 2>/dev/null &" % (monitor_interval, dest_dir))
+        common.printout("LOG","Start22 system data collector under %s " % nodes)
+        common.pdsh(user, nodes, "echo `date +%s`' top start' >> %s/`hostname`_process_log.txt" % ('%s', dest_dir))
+        common.printout("LOG","Start12 system data collector under %s " % nodes)
+        #common.pdsh(user, nodes, "mpstat -P ALL %s > %s/`hostname`_mpstat.txt &  echo `date +%s`' mpstat start' >> %s/`hostname`_process_log.txt"  % (monitor_interval, dest_dir, '%s', dest_dir))
+        common.pdsh(user, nodes, "mpstat -P ALL %s > %s/`hostname`_mpstat.txt  2>/dev/null &"  % (monitor_interval, dest_dir))
+        common.printout("LOG","Start23 system data collector under %s " % nodes)
+        common.pdsh(user, nodes, "echo `date +%s`' mpstat start' >> %s/`hostname`_process_log.txt"  % ('%s', dest_dir))
+        common.printout("LOG","Start13 system data collector under %s " % nodes)
+        #common.pdsh(user, nodes, "iostat -p ALL -dxm %s > %s/`hostname`_iostat.txt & echo `date +%s`' iostat start' >> %s/`hostname`_process_log.txt" % (monitor_interval, dest_dir, '%s', dest_dir))
+        common.pdsh(user, nodes, "iostat -p ALL -dxm %s > %s/`hostname`_iostat.txt   2>/dev/null &" % (monitor_interval, dest_dir))
+        common.printout("LOG","Start24 system data collector under %s " % nodes)
+        common.pdsh(user, nodes, "echo `date +%s`' iostat start' >> %s/`hostname`_process_log.txt" % ( '%s', dest_dir))
+        common.printout("LOG","Start14 system data collector under %s " % nodes)
+        #common.pdsh(user, nodes, "sar -A %s > %s/`hostname`_sar.txt &  echo `date +%s`' sar start' >> %s/`hostname`_process_log.txt" % (monitor_interval, dest_dir, '%s', dest_dir))
+        common.pdsh(user, nodes, "sar -A %s > %s/`hostname`_sar.txt  2>/dev/null &" % (monitor_interval, dest_dir))
+        common.printout("LOG","Start25 system data collector under %s " % nodes)
+        common.pdsh(user, nodes, "echo `date +%s`' sar start' >> %s/`hostname`_process_log.txt" % ('%s', dest_dir))
+        common.printout("LOG","Start15 system data collector under %s " % nodes)
         common.pdsh(user, nodes, "ceph -v > %s/`hostname`_ceph_version.txt" % (dest_dir))
+        common.printout("LOG","Start16 system data collector under %s " % nodes)
         if "perfcounter" in self.cluster["collector"]:
             common.printout("LOG","Start perfcounter data collector under %s " % nodes)
             self.create_admin_daemon_dump_script(dest_dir, time_tmp, monitor_interval)
@@ -241,11 +264,17 @@ class Benchmark(object):
         common.pdsh(user, nodes, "date > %s/`hostname`_process_log.txt" % (dest_dir))
         common.printout("LOG","Start system data collector under %s " % nodes)
         common.pdsh(user, nodes, "cat /proc/interrupts > %s/`hostname`_interrupts_start.txt; echo `date +%s`' interrupt start' >> %s/`hostname`_process_log.txt" % (dest_dir, '%s', dest_dir))
+        common.printout("LOG","Start1 system data collector under %s " % nodes)
         common.pdsh(user, nodes, "ps -fe|grep top |grep -v grep; if [ $? -ne 0 ]; then top -c -b -d %s > %s/`hostname`_top.txt & echo `date +%s`' top start' >> %s/`hostname`_process_log.txt; fi" % (monitor_interval, dest_dir, '%s', dest_dir))
+        common.printout("LOG","Start1 system data collector under %s " % nodes)
         common.pdsh(user, nodes, "ps -fe|grep mpstat |grep -v grep; if [ $? -ne 0 ]; then mpstat -P ALL %s > %s/`hostname`_mpstat.txt & echo `date +%s`' mpstat start' >> %s/`hostname`_process_log.txt; fi"  % (monitor_interval, dest_dir, '%s', dest_dir))
+        common.printout("LOG","Start1 system data collector under %s " % nodes)
         common.pdsh(user, nodes, "ps -fe|grep iostat |grep -v grep; if [ $? -ne 0 ]; then iostat -p -dxm %s > %s/`hostname`_iostat.txt & echo `date +%s`' iostat start' >> %s/`hostname`_process_log.txt; fi" % (monitor_interval, dest_dir, '%s', dest_dir))
+        common.printout("LOG","Start1 system data collector under %s " % nodes)
         common.pdsh(user, nodes, "ps -fe|grep sar |grep -v grep; if [ $? -ne 0 ]; then sar -A %s > %s/`hostname`_sar.txt & echo `date +%s`' sar start' >> %s/`hostname`_process_log.txt; fi" % (monitor_interval, dest_dir, '%s', dest_dir))
+        common.printout("LOG","Start1 system data collector under %s " % nodes)
         common.pdsh(user, nodes, "ceph -v > %s/`hostname`_ceph_version.txt" % (dest_dir))
+        common.printout("LOG","Start1 system data collector under %s " % nodes)
         if head not in nodes:
             common.pdsh(user, [head], "date > %s/`hostname`_process_log.txt" % (dest_dir))
         if "perfcounter" in self.cluster["collector"]:
@@ -469,7 +498,7 @@ class Benchmark(object):
         common.printout("LOG","<CLASS_NAME:%s> Test start running function : %s"%(self.__class__.__name__,sys._getframe().f_code.co_name),screen=False,log_level="LVL4")
         user =  self.cluster["user"]
         controller =  self.cluster["head"]
-        stdout, stderr = common.pdsh(user, [controller], "ceph df | grep %s | awk '{print $3}'" % pool_name, option = "check_return")
+        stdout, stderr = common.pdsh(user, [controller], "ceph df | grep %s | awk '{print $3$4}'" % pool_name, option = "check_return")
         res = common.format_pdsh_return(stdout)
         if controller not in res:
             common.printout("ERROR","cannot get ceph space, seems to be a dead error",log_level="LVL1")

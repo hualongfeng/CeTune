@@ -1,0 +1,15 @@
+*.pyc
+*.log
+visualizer/include/csv/
+visualizer/include/pic/
+conf/all.conf-2019-4-2
+conf/all.conf.20200305
+conf/all.conf.VDI.backup
+conf/all.conf.intel.backup
+conf/all.conf.kunpeng.backup
+deploy/osd_mount.sh
+deploy/remove_ceph.sh
+deploy/create_rbd.sh
+webui/nohup.out
+
+

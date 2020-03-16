@@ -224,7 +224,7 @@ def pdsh(user, nodes, command, option="error_check", except_returncode=0, nodie=
     for node in nodes:
         _nodes.append("%s@%s" % (user, node))
     _nodes = ",".join(_nodes)
-    args = ['pdsh', '-R', 'exec', '-w', _nodes, '-f', str(len(nodes)), 'ssh', '%h', '-oConnectTimeout=15', command]
+    args = ['pdsh', '-R', 'exec', '-w', _nodes, '-f', str(len(nodes)), 'ssh', '%h', '-oConnectTimeout=30', command]
 #    args = ['pdsh', '-w', _nodes, command]
     printout("CONSOLE", args, screen=False,log_level=loglevel)
 
@@ -232,7 +232,7 @@ def pdsh(user, nodes, command, option="error_check", except_returncode=0, nodie=
     if "force" in option:
         return _subp
     stdout = []
-    for line in iter(_subp.stdout.readline,""):
+    for line in iter(_subp.stdout.readline, ""):
         stdout.append(line)
         if "console" in option:
             print line,
@@ -321,7 +321,7 @@ def cp(localfile, remotefile):
         printout("WARNING",stderr+"\n")
 
 def scp(user, node, localfile, remotefile):
-    args = ['scp', '-oConnectTimeout=15', '-r',localfile, '%s@%s:%s' % (user, node, remotefile)]
+    args = ['scp', '-oConnectTimeout=30', '-r',localfile, '%s@%s:%s' % (user, node, remotefile)]
     printout("CONSOLE", args, screen=False)
     #print('scp: %s' % args)
     stdout, stderr = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True).communicate()
@@ -331,7 +331,7 @@ def scp(user, node, localfile, remotefile):
         printout("WARNING",stderr+"\n")
 
 def rscp(user, node, localfile, remotefile):
-    args = ['scp', '-oConnectTimeout=15', '-r', '%s@%s:%s' % (user, node, remotefile), localfile]
+    args = ['scp', '-oConnectTimeout=30', '-r', '%s@%s:%s' % (user, node, remotefile), localfile]
     printout("CONSOLE", args, screen=False)
     #print('rscp: %s' % args)
     stdout, stderr = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True).communicate()
@@ -341,7 +341,7 @@ def rscp(user, node, localfile, remotefile):
 
 # scp from one remote machine to another remote machine
 def rrscp(user, node1, node1_file, node2,node2_file):
-    args = ['scp', '-oConnectTimeout=15', '-r', '%s@%s:%s'%(user,node1,node1_file)  , '%s@%s:%s' % (user, node2, node2_file)]
+    args = ['scp', '-oConnectTimeout=30', '-r', '%s@%s:%s'%(user,node1,node1_file)  , '%s@%s:%s' % (user, node2, node2_file)]
     #print('scp: %s' % args)
     stdout, stderr = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True).communicate()
     if stderr:
@@ -536,7 +536,7 @@ def time_to_sec(fio_runtime, dest_unit='sec'):
         return 0
     runtime = float(res.group(1))
     unit = res.group(2)
-    unit_list = ['sec','msec','usec']
+    unit_list = ['sec','msec','usec', 'nsec']
     dest_unit_index = unit_list.index(dest_unit)
     cur_unit_index = unit_list.index(unit)
     if dest_unit_index > cur_unit_index:
@@ -629,7 +629,7 @@ def wait_ceph_to_health( user, controller ):
 def check_health( user, controller ):
     check_count = 0
     stdout, stderr = pdsh(user, [controller], 'ceph health', option="check_return")
-    if "HEALTH_OK" in stdout:
+    if "HEALTH_OK" in stdout or "HEALTH_WARN" in stdout:
         return True
     else:
         return False
@@ -642,7 +642,8 @@ def get_ceph_health(user, node):
     res = format_pdsh_return(stdout)
     if len(res):
         stdout = res[node]
-        output["ceph_status"] = stdout['health']['overall_status']
+        #output["ceph_status"] = stdout['health']['overall_status']
+        output["ceph_status"] = stdout['health']['status']
         output["detail"] = stdout['health']['checks']
         if "write_bytes_sec" in stdout['pgmap']:
             str_wb = str(stdout['pgmap']['write_bytes_sec'] / 1024 / 1024) + ' MB/s wr, '

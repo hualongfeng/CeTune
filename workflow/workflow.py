@@ -68,10 +68,12 @@ class Workflow:
                 elif work == "benchmark":
                     if not common.check_ceph_running( user, controller ):
                         run_deploy.main(['restart'])
-                    common.printout("LOG","start to run performance test")
+                    common.printout("LOG","start to run performance test71")
                     if self.cluster["disable_tuning_check"] not in ["true", "True", "TRUE"]:
+                        common.printout("LOG","fhl_test1")
                         tuner.main(['--section', section, 'apply_tuning'])
                         time.sleep(3)
+                    common.printout("LOG","fhl_test2")
                     run_cases.main(['--tuning', section])
                 else:
                     common.printout("ERROR","Unknown tuner workstage %s" % work,log_level="LVL1")
@@ -97,5 +99,6 @@ def main(args):
 
 if __name__ == '__main__':
     import sys
+    common.printout("LOG",sys.argv[1:])
     main( sys.argv[1:] )
 #tuner.apply_tuning('testjob1')
