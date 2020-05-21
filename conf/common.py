@@ -66,19 +66,15 @@ class IPHandler:
 
     def getIpByHostInSubnet(self, hostname, subnet ):
         "Get IP by hostname and filter with subnet"
-        stdout, stderr = pdsh('root', [hostname] ,"ifconfig", option = "check_return",loglevel="LVL6")
+        stdout, stderr = pdsh('root', [hostname] ,"hostname -I", option = "check_return",loglevel="LVL6")
         if len(stderr):
             printout("ERROR", 'Error to get ips: %s' % stderr,log_level="LVL1")
             sys.exit()
         ipaddrlist = []
-        res = re.findall("inet addr:\d+\.\d+\.\d+\.\d+",stdout)
-        if len(res) == 0:
-            res = re.findall("inet \d+\.\d+\.\d+\.\d+",stdout)
-        for item in res:
-            tmp = re.findall("\d+\.\d+\.\d+\.\d+",item)
-            b = tmp[0]
-            if b != "127.0.0.1":
-                ipaddrlist.append(b)
+        ips=stdout.split(":")[1].split()
+        for ip in ips:
+            if ip != "127.0.0.1" and ip != "172.17.0.1":
+                ipaddrlist.append(ip)
         if len(ipaddrlist) == 0:
             printout("ERROR", "No IP found",log_level="LVL1")
             sys.exit()
